@@ -1,4 +1,3 @@
-*.py[cod]
 
 # IDE settings
 .vscode/
@@ -6,3 +5,10 @@
 listen
 send
 blink
+
+# C stuff
+*.o
+*.a
+
+# Python stuff
+*.py[cod]
