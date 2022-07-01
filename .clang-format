@@ -1,0 +1,20 @@
+---
+# See https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+
+Language: Cpp
+BasedOnStyle: LLVM
+UseTab: Never
+IndentWidth: 3
+TabWidth: 3
+# AllowShortIfStatementsOnASingleLine: false
+IndentCaseLabels: false
+ColumnLimit: 99
+AccessModifierOffset: -3
+NamespaceIndentation: All
+FixNamespaceComments: false
+
+AlignAfterOpenBracket: BlockIndent
+AllowShortIfStatementsOnASingleLine: OnlyFirstIf
+AllowShortFunctionsOnASingleLine: Empty
+
+...
