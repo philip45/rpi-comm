@@ -23,7 +23,17 @@ try: build/debug/try
 build/debug/frame-listen: src/frame-listen.c $(LIBS)
 	gcc src/frame-listen.c -o build/debug/frame-listen -I Lib -L Lib -l bcm2835 -l funnet -l bcm-ext
 
-listen: build/debug/frame-listen
+frame-listen: build/debug/frame-listen
+
+build/debug/frame-send-new: src/frame-send-new.c $(LIBS)
+	gcc src/frame-send-new.c -o build/debug/frame-send-new -I Lib -L Lib -l bcm2835 -l funnet -l bcm-ext
+
+frame-send-new: build/debug/frame-send-new
+
+build/debug/frame-send: src/frame-send.c Lib/libbcm-ext.a
+	gcc src/frame-send.c -o build/debug/frame-send -I Lib -L Lib -l bcm2835 -l bcm-ext
+
+frame-send: build/debug/frame-send
 
 clean:
 	rm -f build/debug/try
