@@ -99,8 +99,7 @@ int main(int argc, char **argv) {
         ff_init(&frame1, 41, 42, data);
 
         printf("Sedning frame ");
-        ff_print_payload(&frame1);
-
+        ff_print(&frame1);
         ff_send(&frame1);
     }
 

@@ -119,18 +119,18 @@ inline void gpio_send_sync() {
  * immediatelty. Return 1 on timeout.
  */
 inline int gpio_wait_sync() {
-    uint8 level = 255;
-    uint8 last_level = 255;
-    int64 rising_stamp = -1;
-    int64 falling_stamp = -1;
-    int32 pulse_span = -1;
-    bool rising_detected = false;
+    register uint8 level = 255;
+    register uint8 last_level = 255;
+    register int64 rising_stamp = -1;
+    register int64 falling_stamp = -1;
+    register int32 pulse_span = -1;
+    register bool rising_detected = false;
 
-    printf("Waiting for SYNC...\n");
+    // printf("Waiting for SYNC...\n");
 
     // If SMALL_DELAY is OFF, i<350000000 =~ 30 seconds.
     // If SMALL_DELAY is ON, i<8000 =~ 14 seconds.
-    for (int i = 0; i < 36000; i++) {
+    for (register int i = 0; i < 36000; i++) {
         level = bcm2835_gpio_lev(gpio_params.receive_pin);
         // printf(" Level -> %d\n", level);
 
@@ -151,7 +151,7 @@ inline int gpio_wait_sync() {
             pulse_span = timediff(falling_stamp, rising_stamp);
             if (absolute(pulse_span - T_SYNC_ON) < MARGIN) {
                 // printf("SYNC\n");
-                bcm2835_delayMicroseconds(T_SYNC_OFF);
+                bcm2835_delayMicroseconds(T_SYNC_OFF + T / 2);
                 return 0;
             }
         }
