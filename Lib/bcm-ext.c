@@ -151,7 +151,7 @@ inline int gpio_wait_sync() {
             pulse_span = timediff(falling_stamp, rising_stamp);
             if (absolute(pulse_span - T_SYNC_ON) < MARGIN) {
                 // printf("SYNC\n");
-                bcm2835_delayMicroseconds(T_SYNC_OFF + T / 2);
+                bcm2835_delayMicroseconds(T_SYNC_OFF + T / 6);
                 return 0;
             }
         }

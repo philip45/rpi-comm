@@ -12,7 +12,7 @@
 
 #include "_types.h"
 
-#define T 15000 // microseconds
+#define T 6000 // microseconds
 #define T_SYNC_ON 12 * T
 #define T_SYNC_OFF 2 * T
 

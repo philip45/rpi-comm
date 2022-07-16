@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
             return rc;
         };
 
-        printf("Received frame: ");
+        printf("SUCCESS! Received frame: ");
         ff_print(&the_frame);
 
     } else { // i.e. mostly *send*
