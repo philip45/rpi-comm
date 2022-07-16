@@ -62,11 +62,11 @@ void ff_set_check_sum(FunFrame *frame) {
 }
 
 int ff_send(FunFrame *frame) {
-    send_sync();
-    send_byte(frame->sender_id);
-    send_byte(frame->listener_id);
-    send_byte(frame->check_sum);
+    gpio_send_sync();
+    gpio_send_byte(frame->sender_id);
+    gpio_send_byte(frame->listener_id);
+    gpio_send_byte(frame->check_sum);
     for (int i = 0; i < PAYLOAD_SIZE; i++) {
-        send_byte(frame->data[i]);
+        gpio_send_byte(frame->data[i]);
     }
 }

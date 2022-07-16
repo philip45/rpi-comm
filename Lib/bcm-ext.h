@@ -23,9 +23,9 @@ typedef struct {
 #define T_SYNC_ON 12 * T
 #define T_SYNC_OFF 2 * T
 
-int initialize(uint8 send_pin, uint8 receive_pin);
-int cleanup();
-void send_one();
-void send_zero();
-void send_byte(uint8 byte);
-void send_sync();
+int gpio_init(uint8 send_pin, uint8 receive_pin);
+int gpio_cleanup();
+void gpio_send_one();
+void gpio_send_zero();
+void gpio_send_byte(uint8 byte);
+void gpio_send_sync();
