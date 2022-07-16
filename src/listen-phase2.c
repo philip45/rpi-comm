@@ -7,7 +7,7 @@
 
 #define PIN RPI_GPIO_P1_15
 
-const int32 T = 166666;
+const int32 T = 15000;
 const int32 T_ZERO = T/3;
 const int32 T_ONE = 2 * T/3;
 const int32 T_SYNC = 3 * T/2;

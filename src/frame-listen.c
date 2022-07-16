@@ -59,82 +59,80 @@ const int BIT_DELAY = T * 9960 / 10000; // T*9960/10000 works for T = 15 000
 // }
 
 int wait_for_sync() {
-    int level = -1;
-    int last_level = -1;
-    uint64 rising_stamp = -1;
-    uint64 falling_stamp = -1;
-    int32 pulse_span = -1;
-    bool rising_detected = false;
+   int level = -1;
+   int last_level = -1;
+   uint64 rising_stamp = -1;
+   uint64 falling_stamp = -1;
+   int32 pulse_span = -1;
+   bool rising_detected = false;
 
-    printf("Waiting for SYNC...\n\n");
+   printf("Waiting for SYNC...\n\n");
 
-    for (int i = 0; i < 40000; i++) {
-        level = bcm2835_gpio_lev(PIN);
-        // printf(" %d", level);
-        // fflush(stdout);
+   for (int i = 0; i < 40000; i++) {
+      level = bcm2835_gpio_lev(PIN);
+      // printf(" %d", level);
+      // fflush(stdout);
 
-        if (last_level == LOW && level == HIGH) { // rising
-            rising_stamp = elapsed_time_us();
-            rising_detected = true;
-            // printf("\nRising detected\n");
-        } else if (last_level == HIGH && level == LOW) // falling
-        {
-            // printf("\nFalling detected\n");
-            if (!rising_detected) {
-                printf("- but NO rising yet! Continue.\n");
-                last_level = level;
-                continue;
-            }
+      if (last_level == LOW && level == HIGH) { // rising
+         rising_stamp = elapsed_time_us();
+         rising_detected = true;
+         // printf("\nRising detected\n");
+      } else if (last_level == HIGH && level == LOW) // falling
+      {
+         // printf("\nFalling detected\n");
+         if (!rising_detected) {
+            printf("- but NO rising yet! Continue.\n");
+            last_level = level;
+            continue;
+         }
 
-            falling_stamp = elapsed_time_us();
-            pulse_span = timediff(falling_stamp, rising_stamp);
-            // printf("\nRising stamp=%dl\nFalling stamp=%dl\nPulse span=%dl\n", rising_stamp,
-            // falling_stamp, pulse_span);
-            if (absolute(pulse_span - T_SYNC) < MARGIN) {
-                printf("SYNC ");
-                return true;
-            } else {
-                // printf("\n-- pulse span=%d far from T_SYNC=%d\n", pulse_span, T_SYNC);
-            }
-        }
-        last_level = level;
-        bcm2835_delayMicroseconds(T_SCAN);
-    }
-    printf("wait_for_sync timed out!\n");
-    return false;
+         falling_stamp = elapsed_time_us();
+         pulse_span = timediff(falling_stamp, rising_stamp);
+         // printf("\nRising stamp=%dl\nFalling stamp=%dl\nPulse span=%dl\n", rising_stamp,
+         // falling_stamp, pulse_span);
+         if (absolute(pulse_span - T_SYNC) < MARGIN) {
+            printf("SYNC ");
+            return true;
+         } else {
+            // printf("\n-- pulse span=%d far from T_SYNC=%d\n", pulse_span, T_SYNC);
+         }
+      }
+      last_level = level;
+      bcm2835_delayMicroseconds(T_SCAN);
+   }
+   printf("wait_for_sync timed out!\n");
+   return false;
 }
 
 int listen() {
-    int last_bit = -2;
-    int new_bit = -1;
-    int n = 176;
+   int last_bit = -2;
+   int new_bit = -1;
+   int n = 176;
 
-    printf("Listening...\n");
+   printf("Listening...\n");
 
-    bool synced = wait_for_sync();
-    if (synced) {
-        bcm2835_delayMicroseconds(T * 25 / 10);
-        for (int i = 0; i < n; i++) {
-            new_bit = bcm2835_gpio_lev(PIN);
-            printf("%d", new_bit);
-            fflush(stdout);
-            if (new_bit == last_bit)
-                printf(" Listening failed! ");
-            last_bit = new_bit;
-            // printf("%d", i);
-            bcm2835_delayMicroseconds(BIT_DELAY);
-        }
-    }
-    printf("\n");
-    return 0;
+   bool synced = wait_for_sync();
+   if (synced) {
+      bcm2835_delayMicroseconds(T * 25 / 10);
+      for (int i = 0; i < n; i++) {
+         new_bit = bcm2835_gpio_lev(PIN);
+         printf("%d", new_bit);
+         fflush(stdout);
+         if (new_bit == last_bit) printf(" Listening failed! ");
+         last_bit = new_bit;
+         // printf("%d", i);
+         bcm2835_delayMicroseconds(BIT_DELAY);
+      }
+   }
+   printf("\n");
+   return 0;
 }
 
 int main() {
-    int rc = -1;
-    rc = initialize(PIN, BCM2835_GPIO_FSEL_INPT);
-    if (rc)
-        return rc;
-    rc = listen();
-    rc |= cleanup();
-    return rc;
+   int rc = -1;
+   rc = initialize(PIN, BCM2835_GPIO_FSEL_INPT);
+   if (rc) return rc;
+   rc = listen();
+   rc |= cleanup();
+   return rc;
 }

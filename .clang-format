@@ -4,8 +4,8 @@
 Language: Cpp
 BasedOnStyle: LLVM
 UseTab: Never
-IndentWidth: 3
-TabWidth: 3
+IndentWidth: 4
+TabWidth: 4
 # AllowShortIfStatementsOnASingleLine: false
 IndentCaseLabels: false
 ColumnLimit: 99
