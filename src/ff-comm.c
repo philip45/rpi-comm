@@ -8,9 +8,13 @@
 #define SEND_PIN 17
 #define RECEIVE_PIN 22
 
+const char *OPT_VALUES_SEND[] = {"send", "s", "@END"};
+const char *OPT_VALUES_RECEIVE[] = {"receive", "r", "listen", "l", "@END"};
+const char *OPT_VALUES_MODE[] = {"--mode", "-m", "@END"};
+
 bool mostly_receive = 0;
 
-bool is_one_of(char *token, char *options[]) {
+bool is_one_of(char *token, const char *options[]) {
     for (int i = 0;; i++) {
         if (0 == strcmp(options[i], "@END")) {
             return false;
@@ -30,7 +34,7 @@ void print_usage(char *prog_name) {
 
 int parse_args(int argc, char **argv) {
 
-    if (0 != strcmp("--mode", argv[1])) {
+    if (!is_one_of(argv[1], OPT_VALUES_MODE)) {
         printf("Unknown first argument '%s'.\n", argv[1]);
         print_usage(argv[0]);
         return 1;
@@ -42,13 +46,10 @@ int parse_args(int argc, char **argv) {
         return 1;
     }
 
-    char *send_values[] = {"send", "s", "@END"};
-    char *receive_values[] = {"receive", "r", "listen", "l", "@END"};
-
-    if (is_one_of(argv[2], receive_values)) {
+    if (is_one_of(argv[2], OPT_VALUES_RECEIVE)) {
         mostly_receive = true;
 
-    } else if (is_one_of(argv[2], send_values)) {
+    } else if (is_one_of(argv[2], OPT_VALUES_SEND)) {
         mostly_receive = false;
 
     } else {
@@ -76,13 +77,20 @@ int main(int argc, char **argv) {
     if (mostly_receive) {
         printf("Receiving...\n");
         FunFrame the_frame;
-        if (rc = gpio_wait_sync()) {
-            cleanup();
-            return 1;
-        }
-        ff_receive(&the_frame);
+        payload_t init_values = {
+            255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+        };
+
+        ff_init(&the_frame, 51, 52, init_values);
+        if (rc = ff_receive(&the_frame)) {
+            printf("Receiving FAILED (rc=%d)\n", rc);
+            ff_print(&the_frame);
+            gpio_cleanup();
+            return rc;
+        };
+
         printf("Received frame: ");
-        ff_print_payload(&the_frame);
+        ff_print(&the_frame);
 
     } else { // i.e. mostly *send*
         payload_t data = {5, 26, 75, 153, 52, 231, 12, 35, 222, 153, 56, 2, 162, 6, 9, 82};

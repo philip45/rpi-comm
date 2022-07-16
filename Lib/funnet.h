@@ -35,3 +35,4 @@ void ff_set_check_sum(FunFrame *frame);
 int ff_send(FunFrame *frame);
 int ff_receive(FunFrame *frame);
 void ff_print_payload(FunFrame *frame);
+void ff_print(FunFrame *frame);

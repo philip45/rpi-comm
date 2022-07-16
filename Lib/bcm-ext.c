@@ -150,7 +150,8 @@ inline int gpio_wait_sync() {
             falling_stamp = elapsed_time_us();
             pulse_span = timediff(falling_stamp, rising_stamp);
             if (absolute(pulse_span - T_SYNC_ON) < MARGIN) {
-                printf("SYNC detected\n");
+                // printf("SYNC\n");
+                bcm2835_delayMicroseconds(T_SYNC_OFF);
                 return 0;
             }
         }
@@ -166,11 +167,13 @@ inline uint8 gpio_receive_byte() {
     register uint8 pin = gpio_params.receive_pin;
     register uint8 result = 0;
 
-    for (int i = 0; i < 8; i++) {
-        bcm2835_delayMicroseconds(T);
+    for (register uint8 i = 0; i < 7; i++) {
+        result |= bcm2835_gpio_lev(pin);
         result <<= 1;
-        result += bcm2835_gpio_lev(pin);
+        bcm2835_delayMicroseconds(T);
     }
+    result |= bcm2835_gpio_lev(pin);
+    bcm2835_delayMicroseconds(T); // wait for the last bit span
     bcm2835_delayMicroseconds(T); // skip the stop bit
     return result;
 }

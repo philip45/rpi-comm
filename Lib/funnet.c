@@ -65,7 +65,7 @@ int ff_receive(FunFrame *frame) {
     }
     int actual_checksum = ff_calc_check_sum(frame);
     if (actual_checksum != frame->check_sum) {
-        printf("Checksum mismatch! Expected %u but was %u", frame->check_sum, actual_checksum);
+        printf("Checksum mismatch! Expected %u but was %u\n", frame->check_sum, actual_checksum);
         return 9;
     }
     return 0;
@@ -77,4 +77,9 @@ void ff_print_payload(FunFrame *frame) {
         printf(" %u,", frame->data[i]);
     }
     printf("]\n");
+}
+
+void ff_print(FunFrame *frame) {
+    printf("(%u, %u, %u)", frame->sender_id, frame->listener_id, frame->check_sum);
+    ff_print_payload(frame);
 }
