@@ -104,6 +104,7 @@ inline void gpio_send_byte(uint8 byte) {
             gpio_send_zero();
         }
     }
+    gpio_send_zero();
 }
 
 inline void gpio_send_sync() {
@@ -136,12 +137,12 @@ inline int gpio_wait_sync() {
         if (last_level == LOW && level == HIGH) { // rising
             rising_stamp = elapsed_time_us();
             rising_detected = true;
-            printf("Rising detected\n");
+            // printf("Rising detected\n");
 
         } else if (last_level == HIGH && level == LOW) { // falling
-            printf("Falling detected\n");
+            // printf("Falling detected\n");
             if (!rising_detected) {
-                printf("- but NO rising yet! Continue.\n");
+                printf("Falling detected - but NO rising yet! Continue.\n");
                 last_level = level;
                 continue;
             }
