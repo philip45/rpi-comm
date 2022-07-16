@@ -1,5 +1,8 @@
 # Funnet project Makefile
 
+override CFLAGS += -std=c11
+BUILD_DIR := build/debug
+
 LIBS = Lib/libfunnet.a Lib/libbcm-ext.a
 
 all: libs ff-comm
@@ -32,10 +35,16 @@ frame-send: build/debug/frame-send
 # build/debug/ff-comm: src/ff-comm.c $(LIBS)
 # 	gcc src/ff-comm.c -o build/debug/ff-comm -I Lib -L Lib -l bcm2835 -l funnet -l bcm-ext
 
-build/debug/ff-comm: src/ff-comm.c Lib/bcm-ext.h Lib/bcm-ext.c Lib/funnet.h Lib/funnet.c
-	gcc src/ff-comm.c -o build/debug/ff-comm Lib/bcm-ext.c Lib/funnet.c -l bcm2835
+build/$(BUILD_DIR)/ff-comm: src/ff-comm.c Lib/bcm-ext.h Lib/bcm-ext.c Lib/funnet.h Lib/funnet.c
+	@mkdir -p $(BUILD_DIR)
+	gcc $(CFLAGS) src/ff-comm.c Lib/bcm-ext.c Lib/funnet.c -o $(BUILD_DIR)/ff-comm -l bcm2835
+	@ln -fs $(PWD)/$(BUILD_DIR)/ff-comm $$HOME/.local/bin/ff-comm && echo '(Link created.)'
 
-ff-comm: build/debug/ff-comm
+ff-comm:  build/$(BUILD_DIR)/ff-comm
+ifeq ($(RELEASE), 1)
+override CFLAGS += -O3
+override BUILD_DIR = build/release
+endif
 
 
 clean:
@@ -44,6 +53,7 @@ clean:
 clean-all:
 	rm -f build/debug/*
 	rm -f build/release/*
+	rm -f $$HOME/.local/bin/ff-comm
 	rm -f Lib/*.a
 
-.PHONY: clean clean-all
+.PHONY: clean clean-all try
