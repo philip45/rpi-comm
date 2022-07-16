@@ -5,8 +5,8 @@
 #include "../Lib/bcm-ext.h"
 #include "../Lib/funnet.h"
 
-#define SEND_PIN 11
-#define RECEIVE_PIN 15
+#define SEND_PIN 17
+#define RECEIVE_PIN 22
 
 bool mostly_receive = 0;
 
@@ -59,6 +59,10 @@ int parse_args(int argc, char **argv) {
     return 0;
 }
 
+void cleanup() {
+    gpio_cleanup();
+}
+
 int main(int argc, char **argv) {
     int rc = -1;
 
@@ -66,13 +70,31 @@ int main(int argc, char **argv) {
         return rc;
     }
 
+    printf("Mode: mostly %s.\n", mostly_receive ? "receive" : "send");
     gpio_init(SEND_PIN, RECEIVE_PIN);
 
-    FunFrame frame1;
-    payload_t data = {5, 26, 75, 153, 52, 231, 12, 35, 222, 153, 56, 2, 162, 6, 9, 82};
-    ff_init(&frame1, 41, 42, data);
+    if (mostly_receive) {
+        printf("Receiving...\n");
+        FunFrame the_frame;
+        if (rc = gpio_wait_sync()) {
+            cleanup();
+            return 1;
+        }
+        ff_receive(&the_frame);
+        printf("Received frame: ");
+        ff_print_payload(&the_frame);
 
-    printf("Mostly receive: %d\n", mostly_receive);
+    } else { // i.e. mostly *send*
+        payload_t data = {5, 26, 75, 153, 52, 231, 12, 35, 222, 153, 56, 2, 162, 6, 9, 82};
+
+        FunFrame frame1;
+        ff_init(&frame1, 41, 42, data);
+
+        printf("Sedning frame ");
+        ff_print_payload(&frame1);
+
+        ff_send(&frame1);
+    }
 
     gpio_cleanup();
     return 0;

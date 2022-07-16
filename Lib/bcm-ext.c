@@ -12,9 +12,46 @@
 
 #include "bcm-ext.h"
 #include <bcm2835.h>
+#include <stdbool.h>
 #include <stdio.h>
+#include <sys/time.h>
+
+#define US_IN_1SEC 1000000
+
+const int32 T_SCAN = T / 50;
+const int32 MARGIN = 2 * T_SCAN;
+const int32 SMALL_DELAY = T / 200;
+
+typedef struct {
+    uint8 send_pin;
+    uint8 receive_pin;
+} gpio_params_t;
 
 gpio_params_t gpio_params = {255, 255};
+
+// General purpose utility functions --------------
+
+uint64 absolute(int64 x) {
+    if (x < 0) return -x;
+    return x;
+}
+
+uint64 elapsed_time_us() {
+    struct timeval tval;
+
+    gettimeofday(&tval, NULL);
+    return tval.tv_usec;
+    // return useconds;
+}
+
+int32 timediff(uint64 new_stamp, uint64 old_stamp) {
+    if (new_stamp >= old_stamp) {
+        return new_stamp - old_stamp;
+    }
+    return US_IN_1SEC - old_stamp + new_stamp;
+}
+
+// GPIO related helper functions --------------
 
 int gpio_init(uint8 send_pin, uint8 receive_pin) {
 
@@ -74,4 +111,65 @@ inline void gpio_send_sync() {
     bcm2835_delayMicroseconds(T_SYNC_ON);
     bcm2835_gpio_write(gpio_params.send_pin, LOW);
     bcm2835_delayMicroseconds(T_SYNC_OFF);
+}
+
+/**
+ * Block reading the input pin until a sync pulse is detected and return zero
+ * immediatelty. Return 1 on timeout.
+ */
+inline int gpio_wait_sync() {
+    uint8 level = 255;
+    uint8 last_level = 255;
+    int64 rising_stamp = -1;
+    int64 falling_stamp = -1;
+    int32 pulse_span = -1;
+    bool rising_detected = false;
+
+    printf("Waiting for SYNC...\n");
+
+    // If SMALL_DELAY is OFF, i<350000000 =~ 30 seconds.
+    // If SMALL_DELAY is ON, i<8000 =~ 14 seconds.
+    for (int i = 0; i < 36000; i++) {
+        level = bcm2835_gpio_lev(gpio_params.receive_pin);
+        // printf(" Level -> %d\n", level);
+
+        if (last_level == LOW && level == HIGH) { // rising
+            rising_stamp = elapsed_time_us();
+            rising_detected = true;
+            printf("Rising detected\n");
+
+        } else if (last_level == HIGH && level == LOW) { // falling
+            printf("Falling detected\n");
+            if (!rising_detected) {
+                printf("- but NO rising yet! Continue.\n");
+                last_level = level;
+                continue;
+            }
+
+            falling_stamp = elapsed_time_us();
+            pulse_span = timediff(falling_stamp, rising_stamp);
+            if (absolute(pulse_span - T_SYNC_ON) < MARGIN) {
+                printf("SYNC detected\n");
+                return 0;
+            }
+        }
+
+        last_level = level;
+        bcm2835_delayMicroseconds(SMALL_DELAY);
+    }
+    printf("wait_for_sync timed out!\n");
+    return 1;
+}
+
+inline uint8 gpio_receive_byte() {
+    register uint8 pin = gpio_params.receive_pin;
+    register uint8 result = 0;
+
+    for (int i = 0; i < 8; i++) {
+        bcm2835_delayMicroseconds(T);
+        result <<= 1;
+        result += bcm2835_gpio_lev(pin);
+    }
+    bcm2835_delayMicroseconds(T); // skip the stop bit
+    return result;
 }

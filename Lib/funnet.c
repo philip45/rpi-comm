@@ -10,33 +10,9 @@
  *
  */
 
-#include <stdio.h>
-#include <sys/time.h>
-
-#include "bcm-ext.h"
 #include "funnet.h"
-
-#define US_IN_1SEC 1000000
-
-uint64 absolute(int64 x) {
-    if (x < 0) return -x;
-    return x;
-}
-
-uint64 elapsed_time_us() {
-    struct timeval tval;
-
-    gettimeofday(&tval, NULL);
-    uint64 useconds = tval.tv_usec;
-    return useconds;
-}
-
-int32 timediff(uint64 new_stamp, uint64 old_stamp) {
-    if (new_stamp >= old_stamp) {
-        return new_stamp - old_stamp;
-    }
-    return US_IN_1SEC - old_stamp + new_stamp;
-}
+#include "bcm-ext.h"
+#include <stdio.h>
 
 void ff_init(FunFrame *frame, uint8 sender_id, uint8 receiver_id, uint8 payload[]) {
     frame->sender_id = sender_id;
@@ -52,13 +28,17 @@ void ff_init(FunFrame *frame, uint8 sender_id, uint8 receiver_id, uint8 payload[
 uint8 ff_calc_check_sum(FunFrame *frame) {
     uint8 check_sum;
     for (int i = 0; i < 16; i++) {
-        check_sum += (*frame).data[i];
+        check_sum += frame->data[i];
     }
     return check_sum;
 }
 
 void ff_set_check_sum(FunFrame *frame) {
-    (*frame).check_sum = ff_calc_check_sum(frame);
+    register uint8 checksum = 0;
+    for (register int i = 0; i < PAYLOAD_SIZE; i++) {
+        checksum += frame->data[i];
+    }
+    frame->check_sum = checksum;
 }
 
 int ff_send(FunFrame *frame) {
@@ -69,4 +49,32 @@ int ff_send(FunFrame *frame) {
     for (int i = 0; i < PAYLOAD_SIZE; i++) {
         gpio_send_byte(frame->data[i]);
     }
+    return 0;
+}
+
+int ff_receive(FunFrame *frame) {
+    int rc = -1;
+    if (rc = gpio_wait_sync()) {
+        return rc;
+    }
+    frame->sender_id = gpio_receive_byte();
+    frame->listener_id = gpio_receive_byte();
+    frame->check_sum = gpio_receive_byte();
+    for (int i = 0; i < PAYLOAD_SIZE; i++) {
+        frame->data[i] = gpio_receive_byte();
+    }
+    int actual_checksum = ff_calc_check_sum(frame);
+    if (actual_checksum != frame->check_sum) {
+        printf("Checksum mismatch! Expected %u but was %u", frame->check_sum, actual_checksum);
+        return 9;
+    }
+    return 0;
+}
+
+void ff_print_payload(FunFrame *frame) {
+    printf("[");
+    for (int i = 0; i < PAYLOAD_SIZE; i++) {
+        printf(" %u,", frame->data[i]);
+    }
+    printf("]\n");
 }
