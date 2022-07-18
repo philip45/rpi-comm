@@ -32,7 +32,7 @@ void print_usage(char *prog_name) {
     printf("        MODE is one of: 'send' or 'receive' (short form 's' or 'r')\n");
 }
 
-int parse_args(int argc, char **argv) {
+int parse_args(int argc, char *argv[]) {
 
     if (!is_one_of(argv[1], OPT_VALUES_MODE)) {
         printf("Unknown first argument '%s'.\n", argv[1]);
@@ -60,11 +60,39 @@ int parse_args(int argc, char **argv) {
     return 0;
 }
 
-void cleanup() {
-    gpio_cleanup();
+int receive() {
+    printf("Receiving...\n");
+    FunFrame the_frame;
+    payload_t init_values = {
+        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+    };
+
+    ff_init(&the_frame, 51, 52, init_values);
+    int rc = -1;
+    if (rc = ff_receive(&the_frame)) {
+        printf("Receiving FAILED (rc=%d)\n", rc);
+        ff_print(&the_frame);
+        return rc;
+    };
+
+    printf("SUCCESS! Received frame: ");
+    ff_print(&the_frame);
+    return 0;
 }
 
-int main(int argc, char **argv) {
+int send() {
+    payload_t data = {5, 26, 75, 153, 52, 231, 12, 35, 222, 153, 56, 2, 162, 6, 9, 82};
+
+    FunFrame frame1;
+    ff_init(&frame1, 41, 42, data);
+
+    printf("Sedning frame ");
+    ff_print(&frame1);
+    ff_send(&frame1);
+    return 0;
+}
+
+int main(int argc, char *argv[]) {
     int rc = -1;
 
     if (rc = parse_args(argc, argv)) {
@@ -74,35 +102,8 @@ int main(int argc, char **argv) {
     printf("Mode: mostly %s.\n", mostly_receive ? "receive" : "send");
     gpio_init(SEND_PIN, RECEIVE_PIN);
 
-    if (mostly_receive) {
-        printf("Receiving...\n");
-        FunFrame the_frame;
-        payload_t init_values = {
-            255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-        };
-
-        ff_init(&the_frame, 51, 52, init_values);
-        if (rc = ff_receive(&the_frame)) {
-            printf("Receiving FAILED (rc=%d)\n", rc);
-            ff_print(&the_frame);
-            gpio_cleanup();
-            return rc;
-        };
-
-        printf("SUCCESS! Received frame: ");
-        ff_print(&the_frame);
-
-    } else { // i.e. mostly *send*
-        payload_t data = {5, 26, 75, 153, 52, 231, 12, 35, 222, 153, 56, 2, 162, 6, 9, 82};
-
-        FunFrame frame1;
-        ff_init(&frame1, 41, 42, data);
-
-        printf("Sedning frame ");
-        ff_print(&frame1);
-        ff_send(&frame1);
-    }
+    rc = (mostly_receive ? receive() : send());
 
     gpio_cleanup();
-    return 0;
+    return rc;
 }
