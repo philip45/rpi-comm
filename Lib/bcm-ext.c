@@ -21,7 +21,7 @@
 const int32 T_SCAN = T / 50;
 const int32 MARGIN = 3 * T_SCAN;
 const int32 SMALL_DELAY = T / 200;
-const int32 TUNED_T = T - T / 401;
+const int32 TUNED_T = T - T / 600;
 
 typedef struct {
     uint8 send_pin;
@@ -152,7 +152,7 @@ inline int gpio_wait_sync() {
             pulse_span = timediff(falling_stamp, rising_stamp);
             if (absolute(pulse_span - T_SYNC_ON) < MARGIN) {
                 // printf("SYNC\n");
-                bcm2835_delayMicroseconds(T_SYNC_OFF + T / 8);
+                bcm2835_delayMicroseconds(T_SYNC_OFF + T / 3);
                 return 0;
             }
         }
