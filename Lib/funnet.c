@@ -29,7 +29,7 @@ void ff_init(funframe_t *frame, uint8 sender_id, uint8 receiver_id, uint8 payloa
     frame->check_sum = checksum;
 }
 
-uint8 ff_calc_check_sum(funframe_t *frame) {
+uint8 ff_calc_checksum(funframe_t *frame) {
     register uint8 checksum = CHECKSUM_INITIAL;
 
     checksum += frame->sender_id;
@@ -41,7 +41,7 @@ uint8 ff_calc_check_sum(funframe_t *frame) {
     return checksum;
 }
 
-void ff_set_check_sum(funframe_t *frame) {
+void ff_set_checksum(funframe_t *frame) {
     register uint8 checksum = CHECKSUM_INITIAL;
 
     checksum += frame->sender_id;
@@ -56,10 +56,8 @@ void ff_set_check_sum(funframe_t *frame) {
 int ff_send(funframe_t *frame) {
     gpio_send_sync();
 
-    funframe_full_t *frame_full = (funframe_full_t *)frame;
-
     for (register int i = 0; i < FF_FULL_SIZE; i++) {
-        gpio_send_byte(frame_full->data[i]);
+        gpio_send_byte(((funframe_full_t *)frame)->data[i]);
     }
     return 0;
 }
@@ -70,13 +68,11 @@ int ff_receive(funframe_t *frame) {
         return rc;
     }
 
-    funframe_full_t *frame_full = (funframe_full_t *)frame;
-
     for (int i = 0; i < FF_FULL_SIZE; i++) {
-        frame_full->data[i] = gpio_receive_byte();
+        ((funframe_full_t *)frame)->data[i] = gpio_receive_byte();
     }
 
-    int actual_checksum = ff_calc_check_sum(frame);
+    int actual_checksum = ff_calc_checksum(frame);
     if (actual_checksum != frame->check_sum) {
         printf("Checksum mismatch! Expected %u but was %u\n", frame->check_sum, actual_checksum);
         return 9;
