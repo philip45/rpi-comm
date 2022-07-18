@@ -62,7 +62,7 @@ int parse_args(int argc, char *argv[]) {
 
 int receive() {
     printf("Receiving...\n");
-    FunFrame the_frame;
+    funframe_t the_frame;
     payload_t init_values = {
         255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
     };
@@ -83,7 +83,7 @@ int receive() {
 int send() {
     payload_t data = {5, 26, 75, 153, 52, 231, 12, 35, 222, 153, 56, 2, 162, 6, 9, 82};
 
-    FunFrame frame1;
+    funframe_t frame1;
     ff_init(&frame1, 41, 42, data);
 
     printf("Sedning frame ");
