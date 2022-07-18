@@ -12,9 +12,9 @@
 
 #include "_types.h"
 
-#define T 6000 // microseconds
-#define T_SYNC_ON 12 * T
-#define T_SYNC_OFF 2 * T
+#define T 5000 // microseconds
+#define T_SYNC_ON 16 * T
+#define T_SYNC_OFF 4 * T
 
 uint64 elapsed_time_us();
 uint64 absolute(int64 x);

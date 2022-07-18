@@ -19,8 +19,9 @@
 #define US_IN_1SEC 1000000
 
 const int32 T_SCAN = T / 50;
-const int32 MARGIN = 2 * T_SCAN;
+const int32 MARGIN = 3 * T_SCAN;
 const int32 SMALL_DELAY = T / 200;
+const int32 TUNED_T = T - T / 401;
 
 typedef struct {
     uint8 send_pin;
@@ -130,7 +131,7 @@ inline int gpio_wait_sync() {
 
     // If SMALL_DELAY is OFF, i<350000000 =~ 30 seconds.
     // If SMALL_DELAY is ON, i<8000 =~ 14 seconds.
-    for (register int i = 0; i < 36000; i++) {
+    for (register int i = 0; i < 54000; i++) {
         level = bcm2835_gpio_lev(gpio_params.receive_pin);
         // printf(" Level -> %d\n", level);
 
@@ -151,7 +152,7 @@ inline int gpio_wait_sync() {
             pulse_span = timediff(falling_stamp, rising_stamp);
             if (absolute(pulse_span - T_SYNC_ON) < MARGIN) {
                 // printf("SYNC\n");
-                bcm2835_delayMicroseconds(T_SYNC_OFF + T / 6);
+                bcm2835_delayMicroseconds(T_SYNC_OFF + T / 8);
                 return 0;
             }
         }
@@ -166,14 +167,15 @@ inline int gpio_wait_sync() {
 inline uint8 gpio_receive_byte() {
     register uint8 pin = gpio_params.receive_pin;
     register uint8 result = 0;
+    register int32 tuned_delay = TUNED_T;
 
     for (register uint8 i = 0; i < 7; i++) {
         result |= bcm2835_gpio_lev(pin);
         result <<= 1;
-        bcm2835_delayMicroseconds(T);
+        bcm2835_delayMicroseconds(tuned_delay);
     }
     result |= bcm2835_gpio_lev(pin);
-    bcm2835_delayMicroseconds(T); // wait for the last bit span
-    bcm2835_delayMicroseconds(T); // skip the stop bit
+    bcm2835_delayMicroseconds(tuned_delay); // wait for the last bit span
+    bcm2835_delayMicroseconds(tuned_delay); // skip the stop bit
     return result;
 }
