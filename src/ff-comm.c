@@ -12,7 +12,7 @@ const char *OPT_VALUES_SEND[] = {"send", "s", "@END"};
 const char *OPT_VALUES_RECEIVE[] = {"receive", "r", "listen", "l", "@END"};
 const char *OPT_VALUES_MODE[] = {"--mode", "-m", "@END"};
 
-bool mostly_receive = 0;
+bool mostly_receive = false;
 
 bool is_one_of(char *token, const char *options[]) {
     for (int i = 0;; i++) {
@@ -28,20 +28,20 @@ bool is_one_of(char *token, const char *options[]) {
 }
 
 void print_usage(char *prog_name) {
-    printf("USAGE:  %s --mode MODE\n", prog_name);
+    printf("USAGE:  %s --mode|-m MODE\n", prog_name);
     printf("        MODE is one of: 'send' or 'receive' (short form 's' or 'r')\n");
 }
 
 int parse_args(int argc, char *argv[]) {
 
-    if (!is_one_of(argv[1], OPT_VALUES_MODE)) {
-        printf("Unknown first argument '%s'.\n", argv[1]);
+    if (argc != 3) {
+        puts("Missing (or excessive) arguments.\n");
         print_usage(argv[0]);
         return 1;
     }
 
-    if (argc != 3) {
-        puts("Missing (or excessive) arguments.\n");
+    if (!is_one_of(argv[1], OPT_VALUES_MODE)) {
+        printf("Unknown first argument '%s'.\n", argv[1]);
         print_usage(argv[0]);
         return 1;
     }
