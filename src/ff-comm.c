@@ -7,6 +7,7 @@
 
 #define SEND_PIN 17
 #define RECEIVE_PIN 22
+#define COUNT_FRAMES 10
 
 const char *OPT_VALUES_SEND[] = {"send", "s", "@END"};
 const char *OPT_VALUES_RECEIVE[] = {"receive", "r", "listen", "l", "@END"};
@@ -60,35 +61,44 @@ int parse_args(int argc, char *argv[]) {
     return 0;
 }
 
-int receive() {
-    printf("Receiving...\n");
-    funframe_t the_frame;
-    payload_t init_values = {
-        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-    };
+int test_receive(int times) {
+    int fails = 0;
+    int successes = 0;
+    for (int i = 0; i < times; i++) {
+        printf("Receiving frame %d...\n", i + 1);
+        funframe_t the_frame;
+        payload_t init_values = {
+            255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+        };
 
-    ff_init(&the_frame, 51, 52, init_values);
-    int rc = -1;
-    if (rc = ff_receive(&the_frame)) {
-        printf("Receiving FAILED (rc=%d)\n", rc);
-        ff_print(&the_frame);
-        return rc;
-    };
-
-    printf("SUCCESS! Received frame: ");
-    ff_print(&the_frame);
+        ff_init(&the_frame, 51, 52, init_values);
+        int rc = -1;
+        if (rc = ff_receive(&the_frame)) {
+            printf(" > Receiving FAILED (rc=%d)\n", rc);
+            ff_print(&the_frame);
+            fails++;
+        } else {
+            printf(" > SUCCESS! Received frame: ");
+            ff_print(&the_frame);
+        };
+    }
+    successes = times - fails;
+    printf("TESTS: %d, SUCCEEDED: %d, FAILED: %d", times, successes, fails);
     return 0;
 }
 
-int send() {
+int test_send(int times) {
     payload_t data = {5, 26, 75, 153, 52, 231, 12, 35, 222, 153, 56, 2, 162, 6, 9, 82};
 
     funframe_t frame1;
     ff_init(&frame1, 41, 42, data);
 
-    printf("Sedning frame ");
+    printf("Sedning (%d times) frame ", times);
     ff_print(&frame1);
-    ff_send(&frame1);
+    for (int i = 0; i < times; i++) {
+        ff_send(&frame1);
+        sleep(300);
+    }
     return 0;
 }
 
@@ -102,7 +112,7 @@ int main(int argc, char *argv[]) {
     printf("Mode: mostly %s.\n", mostly_receive ? "receive" : "send");
     gpio_init(SEND_PIN, RECEIVE_PIN);
 
-    rc = (mostly_receive ? receive() : send());
+    rc = (mostly_receive ? test_receive(COUNT_FRAMES) : test_send(COUNT_FRAMES));
 
     gpio_cleanup();
     return rc;

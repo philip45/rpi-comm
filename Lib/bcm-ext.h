@@ -26,5 +26,6 @@ void gpio_send_one();
 void gpio_send_zero();
 void gpio_send_byte(uint8 byte);
 void gpio_send_sync();
+void sleep(int times);
 int gpio_wait_sync();
 uint8 gpio_receive_byte();

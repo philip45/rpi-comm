@@ -115,6 +115,10 @@ inline void gpio_send_sync() {
     bcm2835_delayMicroseconds(T_SYNC_OFF);
 }
 
+inline void sleep(int millisec) {
+    bcm2835_delay(millisec);
+}
+
 /**
  * Block reading the input pin until a sync pulse is detected and return zero
  * immediatelty. Return 1 on timeout.
