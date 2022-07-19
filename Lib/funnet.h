@@ -18,8 +18,8 @@ typedef uint8 payload_t[FF_PAYLOAD_SIZE];
 // The communication struct
 typedef struct {
     uint8 sender_id;
-    uint8 listener_id;
-    uint8 check_sum;
+    uint8 receiver_id;
+    uint8 checksum;
     payload_t data;
 } funframe_t;
 

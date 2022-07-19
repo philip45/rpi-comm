@@ -20,20 +20,20 @@ void ff_init(funframe_t *frame, uint8 sender_id, uint8 receiver_id, uint8 payloa
     register uint8 checksum = CHECKSUM_INITIAL;
 
     checksum += (frame->sender_id = sender_id);
-    checksum += (frame->listener_id = receiver_id);
+    checksum += (frame->receiver_id = receiver_id);
 
     for (register int i = 0; i < FF_PAYLOAD_SIZE; i++) {
         frame->data[i] = payload[i];
         checksum += frame->data[i];
     }
-    frame->check_sum = checksum;
+    frame->checksum = checksum;
 }
 
 uint8 ff_calc_checksum(funframe_t *frame) {
     register uint8 checksum = CHECKSUM_INITIAL;
 
     checksum += frame->sender_id;
-    checksum += frame->listener_id;
+    checksum += frame->receiver_id;
 
     for (register int i = 0; i < FF_PAYLOAD_SIZE; i++) {
         checksum += frame->data[i];
@@ -45,12 +45,12 @@ void ff_set_checksum(funframe_t *frame) {
     register uint8 checksum = CHECKSUM_INITIAL;
 
     checksum += frame->sender_id;
-    checksum += frame->listener_id;
+    checksum += frame->receiver_id;
 
     for (register int i = 0; i < FF_PAYLOAD_SIZE; i++) {
         checksum += frame->data[i];
     }
-    frame->check_sum = checksum;
+    frame->checksum = checksum;
 }
 
 int ff_send(funframe_t *frame) {
@@ -73,8 +73,8 @@ int ff_receive(funframe_t *frame) {
     }
 
     int actual_checksum = ff_calc_checksum(frame);
-    if (actual_checksum != frame->check_sum) {
-        printf("Checksum mismatch! Expected %u but was %u\n", frame->check_sum, actual_checksum);
+    if (actual_checksum != frame->checksum) {
+        printf("Checksum mismatch! Expected %u but was %u\n", frame->checksum, actual_checksum);
         return 9;
     }
     return 0;
@@ -89,6 +89,6 @@ void ff_print_payload(funframe_t *frame) {
 }
 
 void ff_print(funframe_t *frame) {
-    printf("(%u, %u, %u)", frame->sender_id, frame->listener_id, frame->check_sum);
+    printf("(%u, %u, %u)", frame->sender_id, frame->receiver_id, frame->checksum);
     ff_print_payload(frame);
 }
